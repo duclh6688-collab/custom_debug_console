@@ -1,39 +1,76 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+# debug_console_overlay
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+A lightweight, draggable **debug console overlay** for Flutter. It shows logs in-app so you don't have to switch back to the IDE console. **Disabled in release builds.**
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Features (v0.1.0)
+- Floating **bubble** that opens a bottom **panel**
+- **Logs tab** with search and level/tag filters
+- **Network tab** allows api request logging
+- Capture **FlutterError** automatically
+- Optional helper to capture `print()` output via a **Zone**
+- **Ring buffer** (keeps last N logs) for performance
+- 0-setup: just wrap your app in `DebugConsoleOverlay`
 
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+## Quick start
 
 ```dart
-const like = 'sample';
+void main() {
+  // Optional: capture print() into overlay as well.
+  DebugConsoleOverlay.runWithPrintCapture(() {
+    runApp(const MyApp());
+  });
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DebugConsoleOverlay(
+      enabled: kDebugMode, // auto no-op in release
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(title: const Text('Debug Console Overlay')),
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () {
+                DebugConsoleOverlay.log('Button clicked', level: LogLevel.info, tag: 'UI');
+              },
+              child: const Text('Log something'),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 ```
 
-## Additional information
+## API
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+// Log text with level & optional tag
+DebugConsoleOverlay.log('Payment started', level: LogLevel.info, tag: 'PAY');
+
+// Wrap runApp to also capture print() output
+DebugConsoleOverlay.runWithPrintCapture(() {
+  runApp(const MyApp());
+});
+```
+
+## Not included (yet)
+- State tabs (planned next versions)
+- Interceptors/adapters (Provider/GetX/Riverpod)
+
+## Safety
+- The overlay is **disabled in release** (guard with `kDebugMode`).
+- Reduces memory footprint via a **ring buffer**; defaults to last 200 logs.
+
+## Roadmap
+- v0.2: Network tab + basic request/response logging helpers
+- v0.3: State snapshots tab + redaction helpers
+- v1.0: Export to JSON, unread badges, perf polish
+
+## License
+MIT
