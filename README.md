@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DebugConsoleOverlay(
-      enabled: kDebugMode, // auto no-op in release
+      enabled: flavor != prod, // auto no-op in release
       child: MaterialApp(
         home: Scaffold(
           appBar: AppBar(title: const Text('Debug Console Overlay')),
@@ -51,26 +51,13 @@ class MyApp extends StatelessWidget {
 
 ```dart
 // Log text with level & optional tag
-DebugConsoleOverlay.log('Payment started', level: LogLevel.info, tag: 'PAY');
+dio.interceptors.add(DPrettyDioLogger());
 
 // Wrap runApp to also capture print() output
 DebugConsoleOverlay.runWithPrintCapture(() {
   runApp(const MyApp());
 });
 ```
-
-## Not included (yet)
-- State tabs (planned next versions)
-- Interceptors/adapters (Provider/GetX/Riverpod)
-
-## Safety
-- The overlay is **disabled in release** (guard with `kDebugMode`).
-- Reduces memory footprint via a **ring buffer**; defaults to last 200 logs.
-
-## Roadmap
-- v0.2: Network tab + basic request/response logging helpers
-- v0.3: State snapshots tab + redaction helpers
-- v1.0: Export to JSON, unread badges, perf polish
 
 ## License
 MIT
