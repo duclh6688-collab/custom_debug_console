@@ -3,3 +3,6 @@
 
 ## 1.0.1
 * add network interceptor
+
+## 1.0.3
+* change position of debug view
