@@ -24,14 +24,18 @@ class _LogsTabState extends State<LogsTab> {
     super.initState();
     _levelFilter = LogLevel.request;
     _items.addAll(DebugBus.instance.logsSnapshot);
-
     _sub = DebugBus.instance.logsStream.listen((e) {
       setState(() => _items.add(e));
-      if (_autoScroll && _scrollController.hasClients) {
+
+      if (_autoScroll) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_scrollController.hasClients) return;
+
+          final maxScroll = _scrollController.position.maxScrollExtent;
+
           _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300),
+            maxScroll,
+            duration: const Duration(milliseconds: 250),
             curve: Curves.easeOut,
           );
         });
@@ -461,7 +465,11 @@ class _LogsTabState extends State<LogsTab> {
         return _ToastOverlay(
           message: message,
           isError: isError,
-          onDismiss: () => overlayEntry.remove(),
+          onDismiss: () {
+            if (overlayEntry.mounted) {
+              overlayEntry.remove();
+            }
+          },
         );
       },
     );
@@ -508,16 +516,7 @@ class _LogsTabState extends State<LogsTab> {
     });
 
     // Best-effort: keep DebugBus snapshot aligned.
-    try {
-      final List<LogEvent> snapshot = DebugBus.instance.logsSnapshot;
-      if (level == null) {
-        snapshot.clear();
-      } else {
-        snapshot.removeWhere((e) => e.level == level);
-      }
-    } catch (_) {
-      // ignore
-    }
+    DebugBus.instance.clearLogs(level: level);
 
     final int removed = before - _items.length;
     _showSnackBar(
@@ -551,18 +550,38 @@ class _ToastOverlayState extends State<_ToastOverlay>
   late Animation<Offset> _slide;
   late Animation<double> _fade;
 
-  Timer? _timer;
+  Timer? _timer; // 🔥 thêm
 
   @override
   void initState() {
     super.initState();
 
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _fade = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(_controller);
+
     _controller.forward();
 
+    // 🔥 dùng Timer thay vì Future
     _timer = Timer(const Duration(seconds: 3), () async {
       if (!mounted) return;
 
-      await _controller.reverse();
+      try {
+        await _controller.reverse();
+      } catch (_) {
+        return;
+      }
 
       if (mounted) {
         widget.onDismiss();
