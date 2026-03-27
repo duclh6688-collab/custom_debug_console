@@ -6,3 +6,6 @@
 
 ## 1.0.4
 * change position of debug view
+
+## 1.0.5
+* Fix bug

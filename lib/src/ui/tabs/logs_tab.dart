@@ -551,35 +551,28 @@ class _ToastOverlayState extends State<_ToastOverlay>
   late Animation<Offset> _slide;
   late Animation<double> _fade;
 
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _slide = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fade = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(_controller);
-
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () async {
+    _timer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+
       await _controller.reverse();
-      widget.onDismiss();
+
+      if (mounted) {
+        widget.onDismiss();
+      }
     });
   }
 
   @override
   void dispose() {
+    _timer?.cancel(); // 🔥 QUAN TRỌNG
     _controller.dispose();
     super.dispose();
   }
