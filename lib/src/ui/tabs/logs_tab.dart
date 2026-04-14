@@ -24,18 +24,14 @@ class _LogsTabState extends State<LogsTab> {
     super.initState();
     _levelFilter = LogLevel.request;
     _items.addAll(DebugBus.instance.logsSnapshot);
+
     _sub = DebugBus.instance.logsStream.listen((e) {
       setState(() => _items.add(e));
-
-      if (_autoScroll) {
+      if (_autoScroll && _scrollController.hasClients) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_scrollController.hasClients) return;
-
-          final maxScroll = _scrollController.position.maxScrollExtent;
-
           _scrollController.animateTo(
-            maxScroll,
-            duration: const Duration(milliseconds: 250),
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
         });
@@ -465,11 +461,7 @@ class _LogsTabState extends State<LogsTab> {
         return _ToastOverlay(
           message: message,
           isError: isError,
-          onDismiss: () {
-            if (overlayEntry.mounted) {
-              overlayEntry.remove();
-            }
-          },
+          onDismiss: () => overlayEntry.remove(),
         );
       },
     );
@@ -516,7 +508,16 @@ class _LogsTabState extends State<LogsTab> {
     });
 
     // Best-effort: keep DebugBus snapshot aligned.
-    DebugBus.instance.clearLogs(level: level);
+    try {
+      final List<LogEvent> snapshot = DebugBus.instance.logsSnapshot;
+      if (level == null) {
+        snapshot.clear();
+      } else {
+        snapshot.removeWhere((e) => e.level == level);
+      }
+    } catch (_) {
+      // ignore
+    }
 
     final int removed = before - _items.length;
     _showSnackBar(
@@ -550,8 +551,6 @@ class _ToastOverlayState extends State<_ToastOverlay>
   late Animation<Offset> _slide;
   late Animation<double> _fade;
 
-  Timer? _timer; // 🔥 thêm
-
   @override
   void initState() {
     super.initState();
@@ -573,25 +572,14 @@ class _ToastOverlayState extends State<_ToastOverlay>
 
     _controller.forward();
 
-    // 🔥 dùng Timer thay vì Future
-    _timer = Timer(const Duration(seconds: 3), () async {
-      if (!mounted) return;
-
-      try {
-        await _controller.reverse();
-      } catch (_) {
-        return;
-      }
-
-      if (mounted) {
-        widget.onDismiss();
-      }
+    Future.delayed(const Duration(seconds: 3), () async {
+      await _controller.reverse();
+      widget.onDismiss();
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel(); // 🔥 QUAN TRỌNG
     _controller.dispose();
     super.dispose();
   }

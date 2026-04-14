@@ -1,63 +1,39 @@
+<!--
+This README describes the package. If you publish this package to pub.dev,
+this README's contents appear on the landing page for your package.
 
-# debug_console_overlay
+For information about how to write a good package README, see the guide for
+[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
 
-A lightweight, draggable **debug console overlay** for Flutter. It shows logs in-app so you don't have to switch back to the IDE console. **Disabled in release builds.**
+For general information about developing packages, see the Dart guide for
+[creating packages](https://dart.dev/guides/libraries/create-packages)
+and the Flutter guide for
+[developing packages and plugins](https://flutter.dev/to/develop-packages).
+-->
 
-## Features (v1.0.2)
-- Floating **bubble** that opens a bottom **panel**
-- **Logs tab** with search and level/tag filters
-- **Network tab** allows api request logging
-- Capture **FlutterError** automatically
-- Optional helper to capture `print()` output via a **Zone**
-- **Ring buffer** (keeps last N logs) for performance
-- 0-setup: just wrap your app in `DebugConsoleOverlay`
+TODO: Put a short description of the package here that helps potential users
+know whether this package might be useful for them.
 
-## Quick start
+## Features
 
-```dart
-void main() {
-  // Optional: capture print() into overlay as well.
-  DebugConsoleOverlay.runWithPrintCapture(() {
-    runApp(const MyApp());
-  });
-}
+TODO: List what your package can do. Maybe include images, gifs, or videos.
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+## Getting started
 
-  @override
-  Widget build(BuildContext context) {
-    return DebugConsoleOverlay(
-      enabled: flavor != prod, // auto no-op in release
-      child: MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(title: const Text('Debug Console Overlay')),
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () {
-                DebugConsoleOverlay.log('Button clicked', level: LogLevel.info, tag: 'UI');
-              },
-              child: const Text('Log something'),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-```
+TODO: List prerequisites and provide or point to information on how to
+start using the package.
 
-## API
+## Usage
+
+TODO: Include short and useful examples for package users. Add longer examples
+to `/example` folder.
 
 ```dart
-// Log text with level & optional tag
-dio.interceptors.add(DPrettyDioLogger());
-
-// Wrap runApp to also capture print() output
-DebugConsoleOverlay.runWithPrintCapture(() {
-  runApp(const MyApp());
-});
+const like = 'sample';
 ```
 
-## License
-MIT
+## Additional information
+
+TODO: Tell users more about the package: where to find more information, how to
+contribute to the package, how to file issues, what response they can expect
+from the package authors, and more.
